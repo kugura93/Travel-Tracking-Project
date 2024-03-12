@@ -1,0 +1,206 @@
+﻿@page "/{home?}"
+@model ProjectIntern_.NET.Pages.homeModel
+
+@{
+    ViewData["Title"] = "予定伝票一覧";
+    int i = 1;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>予定伝票入力</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ProjectIntern_.NET.styles.css" asp-append-version="true" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+</head>
+<body>
+    <h1 align="center">予定伝票一覧</h1>
+
+    <div id="searchForm" class="container-fluid" style="margin-top: 60px;">
+		<form id="searchInfo" action="#" method="get">
+			<div class="spacing">
+                <label>年度</label>
+                <select id="yearGen" asp-for="kaikeiND" asp-items="Model.YearGen">
+					<option value=""></option>
+				</select><br>
+			</div>
+
+            <div class="spacing">
+				<label>伝票番号</label> 
+                <input id="denpyoNoFrom" type="text" name="denpyoNOFrom" asp-for="denpyoNOFrom"/> 
+                <span> - </span> 
+                <input id="denpyoNoTo" type="text" name="denpyoNOTo" asp-for="denpyoNOTo"/>
+                <label id="alertDenpyoNO" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+                <br>
+			</div>
+
+            <div class="spacing">
+				<label>伝票日付</label> 
+                <input id="denpyoDateFrom" name="denpyoDTFrom" asp-for="denpyoDTFrom" type="text" onkeydown="return false" onfocus="onfocusType(this)" onblur="if(!this.value) this.type='text'" />
+                <span> - </span> 
+                <input id="denpyoDateTo" name="denpyoDTTo" asp-for="denpyoDTTo" type="text" onkeydown="return false" onfocus="onfocusType(this)" onblur="if(!this.value) this.type='text'" />
+                <label id="alertDenpyoDT" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+                <br>
+			</div>
+
+            <div class="spacing">
+				<label>申請日</label> 
+                <input id="uketukeDateFrom" name="uketukeDTFrom" asp-for="uketukeDTFrom" type="text" onkeydown="return false" onfocus="onfocusType(this)" onblur="if(!this.value) this.type='text'" />
+                <span> - </span> 
+                <input id="uketukeDateTo" name="uketukeDTTo" asp-for="uketukeDTTo" type="text" onkeydown="return false" onfocus="onfocusType(this)" onblur="if(!this.value) this.type='text'" />
+                <label id="alertUketukeDT" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+                <br>
+			</div>
+
+            <div class="spacing">
+				<label>出納方法</label> 
+                <select id="payOpt1" asp-for="suitoKBOpt1" asp-items="Model.SuitoKB">
+					<option value=""></option>
+				</select> 
+                <span> - </span> 
+                <select id="payOpt2" asp-for="suitoKBOpt2" asp-items="Model.SuitoKB">
+					<option value=""></option>
+				</select><br>
+			</div>
+
+
+			<div style="display: inline-block; position: relative; margin-left: 725px">
+				<button id="btnSubmit" type="submit">Search</button>
+			</div>
+			<div style="display: inline-block; position: relative; margin-left: 825px">
+				<button id="btnEdit" type="button" onclick="assignLocation('edit', @ViewData["maxId"])">登録</button>
+			</div>
+		</form>
+	</div>
+    <br />
+    <table id="dbRecords" class="center">
+        <thead>
+            <tr>
+                <th>
+                    行
+                </th>
+                <th>
+                    伝票番号
+                </th>
+                <th>
+                    起票部門
+                </th>
+                <th>
+                    伝票日付
+                </th>
+                <th>
+                    申請日
+                </th>
+                <th>
+                    出納方法
+                </th>
+                <th>
+                    金額
+                </th>
+                <th>
+                    行選択
+                </th>
+            </tr>
+        </thead>
+        <tbody class="hoverable">
+            @if(Model.ES_YDENPYO != null)
+            {
+                @foreach (var item in Model.ES_YDENPYO)
+                {
+                    <tr style="cursor:pointer" ondblclick="window.location.href = 'edit/@item.denpyoNO'">
+                        <td>
+                            @i
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.denpyoNO)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.bumonCD_YKANR)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.denpyoDT)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.uketukeDT)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.suitoKB)
+                        </td>
+                        <td class="count-me">
+                            @Html.DisplayFor(modelItem => item.kingaku)
+                        </td>
+                        <td>
+                            <input type="checkbox" style="margin: auto">
+                        </td>
+                    </tr>
+                    i++;
+                }
+            }
+                <tr>
+                    <th colspan="6" style="border-left-style: hidden; border-bottom-style: hidden; background-color: white; text-align: right;">交通費計</th>
+                    <th id="sumCash"></th>
+                    <th style="border-right-style: hidden; border-bottom-style: hidden; background-color: white"></th>
+                </tr>
+        </tbody>
+    </table>
+    <script src="~/js/datefilter.js"></script>
+    <script src="~/js/yearvalidation.js"></script>
+    <script src="~/js/editScript.js"></script>
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script type="text/javascript">
+        
+        $("#btnSubmit").on("click", function(){
+            var flag = 1;
+
+            if (parseInt($("#denpyoNoFrom").val()) > parseInt($("#denpyoNoTo").val())) {
+                flag = 0;
+                $("#alertDenpyoNO").text("伝票番号 From have to < or = to 伝票番号 To");
+            }
+            else{
+                $("#alertDenpyoNO").text("");
+            }
+
+            if (Date.parse($("#denpyoDateFrom").val()) > Date.parse($("#denpyoDateTo").val())) {
+                flag = 0;
+                $("#alertDenpyoDT").text("伝票日付 From have to < or = to 伝票日付 To");
+            }
+            else{
+                $("#alertDenpyoDT").text("");
+            }
+
+            if (Date.parse($("#uketukeDateFrom").val()) > Date.parse($("#uketukeDateTo").val())) {
+                flag = 0;
+                $("#alertUketukeDT").text("申請日 From have to < or = to 申請日 To");
+            }
+            else{
+                $("#alertUketukeDT").text("");
+            }
+
+            if(flag == 0){
+                $("#searchInfo").on("submit", function (e) {
+                    e.preventDefault();
+                });
+            }
+            else{
+                $("#searchInfo").unbind("submit").submit();
+            }
+        });
+
+
+        sessionStorage.removeItem("tempData");
+        sessionStorage.removeItem("rootData");
+        sessionStorage.removeItem("rootUpdate");
+        sessionStorage.removeItem("allData");
+        sessionStorage.removeItem("tempYdenpyo");
+        sumCash();
+    </script>
+</body>
+</html>

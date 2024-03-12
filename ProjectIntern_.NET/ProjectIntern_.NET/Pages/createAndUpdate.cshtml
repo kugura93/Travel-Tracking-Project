@@ -1,0 +1,722 @@
+﻿@page "/edit/{denpyoNO:int?}"
+@model ProjectIntern_.NET.Pages.createAndUpdateModel
+
+@{
+    ViewData["Title"] = "createAndUpdate";
+    int bumonCount = 1;
+    int ydenpyodCount = 1;
+    var maxgyoNO = ViewData["maxGyoNoId"];
+}
+
+<head>
+    <meta charset="utf-8" />
+    <title>予定伝票入力</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ProjectIntern_.NET.styles.css" asp-append-version="true" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+</head>
+<body>
+    <h1 align="center">予定伝票入力</h1>
+
+    <div id=editForm class="container-fluid" style="margin-top: 60px; margin-right: 10%">
+        <form id="editInfo" method="post">
+            <div class="spacing">
+                <div class="spacing">
+
+                    <label>伝票番号</label>
+                    <input type="text" disabled="disabled" value="@ViewContext.RouteData.Values["denpyoNO"]" asp-for="ES_YDENPYO.denpyoNO" id="denpyoNO">
+
+                    <button id="btnCreate" type="submit" style="margin-left: 910px; ">登録</button>
+                    @if (Model.listES_YDENPYO.Any(u => u.denpyoNO.ToString() == ViewContext.RouteData.Values["denpyoNO"].ToString()))
+                    {
+                        <button id="btnDelete" type="button" style="margin-left: -4px">削除</button>
+                    }
+                    else
+                    {
+                        <button id="btnDelete" type="submit" disabled="disabled" style="margin-left: -4px">削除</button>
+                    }
+                    <button id="btnBack" type="button" style="margin-left: -5px" onclick="backHome('/')">終了</button>
+
+                </div>
+
+
+                <div class="spacing">
+                    <label>伝票日付</label>
+                    @if (Model.listES_YDENPYO.Any(u => u.denpyoNO.ToString() == ViewContext.RouteData.Values["denpyoNO"].ToString()))
+                    {
+                        <input type="text" asp-for="ES_YDENPYO.denpyoDT" id="denpyoDT" disabled>
+                    }
+                    else
+                    {
+                        <input type="text" disabled value="@DateTime.Today.ToString("d")" asp-for="ES_YDENPYO.denpyoDT" id="denpyoDT">
+                    }
+
+                    <label style="margin-left: 400px">出納方法</label>
+                    <select style="width: 125px" asp-for="ES_YDENPYO.suitoKB" asp-items="Model.SuitoKB" id="suitoKB">
+                        <option value=""></option>
+                    </select>
+                    <label id="alertSuito" style="height: 24px; color: white; width: auto; margin-left: 0px">出納方法 field is empty!</label>
+                    @*<label id="alertSuito" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>*@
+
+                    <label style="margin-left: 90px" >支払予定日</label>
+                    <input asp-for="ES_YDENPYO.shiharaiDT" type="text" onfocus="onfocusType(this)" onblur="if(!this.value) this.type='text'" id="shiharaiDT"/>
+                    <label id="alertShiharai" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+                    <br>
+                </div>
+
+                <div class="spacing">
+                    <label>年度</label>
+                    <select id="yearGen" asp-for="ES_YDENPYO.kaikeiND" asp-items="Model.YearGen">
+                        <option value=""></option>
+                    </select>
+                    <label id="alertKaikei" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+                </div>
+
+                <div class="spacing">
+                    <label>申請日</label>
+                    <input asp-for="ES_YDENPYO.uketukeDT" type="text" onfocus="onfocusType(this)" onblur="if(!this.value) this.type='text'" id="uketukeDT"/>
+                    <label id="alertUketuke" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+                    <br>
+                </div>
+
+                <div class="spacing">
+                    <label>起票部門</label>
+                    <input style="width: 75px" type="text" asp-for="BUMON.bumonCD" id="editBumonCD" />
+                    <input type="text" style="margin-left: -4px" asp-for="BUMON.bumonNM" id="editBumonNM" disabled>
+                    <button id="btnBumon" type="button" style="margin-left: -4px" data-bs-toggle="modal" data-bs-target="#popup">
+                        ガ
+                    </button>
+                    <label id="alertBumon" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+                    <br>
+                </div>
+
+                <div class="spacing">
+                    <label>出張目的（備考）</label>
+                    <input style="width: 400px" type="text" asp-for="ES_YDENPYO.biko" id="biko">
+                    <label id="alertBiko" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+                    <br>
+                    <button id="btnTransport" type="button" style="margin-left: 1340px; ">明細追加</button>
+                    <br><br>
+                </div>
+            </div>
+            <input type="text" asp-for="ES_YDENPYO.kingaku" id="kingaku" value="0" hidden />
+            @Html.AntiForgeryToken();
+        </form>
+    </div>
+
+
+    <div class="spacing" id="transportContainer">
+        <table id="tranportsTbl" class="center">
+            <thead>
+                <tr>
+                    <th colspan="6">交通費</th>
+                </tr>
+            </thead>
+            <thead>
+                <tr>
+                    <th>
+                        行
+                    </th>
+                    <th>
+                        年月日 @*date*@
+                    </th>
+                    <th>
+                        出発地 @*departure point*@
+                    </th>
+                    <th>
+                        目的地 @*destination*@
+                    </th>
+                    <th>
+                        経路 @*course*@
+                    </th>
+                    <th>
+                        金額 @*kingaku*@
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="hoverable" id="root">
+                @if (Model.listES_YDENPYOD_ById != null)
+                {
+                    @foreach (var item in Model.listES_YDENPYOD_ById)
+                    {
+                        <tr style="cursor:pointer" ondblclick="window.location.pathname = 'plan/@item.denpyoNO/@item.gyoNO'">
+                            <td>
+                                @ydenpyodCount
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.idoDT)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.shuppatsuPLC)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.mokutekiPLC)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.keiro)
+                            </td>
+                            <td class="count-me">
+                                @Html.DisplayFor(modelItem => item.kingaku)
+                            </td>
+                            <td hidden>
+                                @Html.DisplayFor(modelItem => item.gyoNO)
+                            </td>
+                        </tr>
+                        ydenpyodCount++;
+                    }
+                }
+            </tbody>
+            <tbody class="hoverable" id="temp">
+            </tbody>
+            <tbody>
+                <tr>
+                    <th colspan="5" style="border-left-style: hidden; border-bottom-style: hidden; background-color: white; text-align: right;">交通費計</th>
+                    <th id="sumCash"></th>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    @*
+    Modal for popup window, bumon list, search by ajax, search by button
+    *@
+    <div class="modal fade" tabindex="-1" role="dialog" id="popup" data-bs-keyboard="false" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title w-100 text-center">部門</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="searchField">
+                        <form id="searchBumon" method="get">
+                            <div class="spacing">
+                                <label>部門コード</label>
+                                <input type="text" asp-for="@Model.bumonCD" id="bumonCD" />
+                            </div>
+                            <div class="spacing">
+                                <label>部門名</label>
+                                <input type="text" asp-for="@Model.bumonNM" id="bumonNM" />
+                            </div>
+                            <div class="spacing">
+                                <label></label>
+                                <button id="btnSearch" type="button" onclick="searchBumon()">検索</button>
+                                <label id="emptyRadio" style="height: 30px; color: red; width: 200px; margin-left: 0px"></label>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <div class="spacing" id="recordsTable">
+                        <table id="dbRecords" class="center">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        選択
+                                    </th>
+                                    <th>
+                                        部門コード
+                                    </th>
+                                    <th>
+                                        部門名
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="hoverable" id="records">
+                                @foreach (var item in Model.listBUMON)
+                                {
+                                    <tr style="cursor:pointer">
+                                        <td>
+                                            <input type="radio" name="choice" id="option@(bumonCount)">
+                                        </td>
+                                        <td>
+                                            <p name="itemBumonCD">@Html.DisplayFor(modelItem => item.bumonCD)</p>
+                                        </td>
+                                        <td>
+                                            <p name="itemBumonNM">@Html.DisplayFor(modelItem => item.bumonNM)</p>
+                                        </td>
+                                    </tr>
+                                    bumonCount++;
+                                }
+                            </tbody>
+                        </table>
+
+                        <div class="spacing">
+                            <label></label>
+                            <button id="btnChoose" type="button">選択</button>
+                            <button id="btnReturn" type="button" style="margin-left: -4px" data-bs-dismiss="modal">戻る</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="~/js/datefilter.js"></script>
+    <script src="~/js/yearvalidation.js"></script>
+    <script src="~/js/editScript.js"></script>
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script type="text/javascript">
+        document.getElementById("denpyoNO").disabled = false;
+        var id = @ViewData["maxId"];
+        document.getElementById("denpyoNO").disabled = true;
+        
+        var tempYdenpyo = JSON.parse(sessionStorage.getItem("tempYdenpyo"));
+        if(tempYdenpyo != null){
+            $("#denpyoNO").val(tempYdenpyo[0].denpyoNO);
+            $("#denpyoDT").val(tempYdenpyo[0].denpyoDT);
+            $("#suitoKB").val(tempYdenpyo[0].suitoKB);
+            $("#shiharaiDT").val(tempYdenpyo[0].shiharaiDT);
+            $("#yearGen").val(tempYdenpyo[0].kaikeiND);
+            $("#uketukeDT").val(tempYdenpyo[0].uketukeDT);
+            $("#editBumonCD").val(tempYdenpyo[0].bumonCD);
+            $("#biko").val(tempYdenpyo[0].biko);
+        }
+
+        document.getElementById("btnCreate").onclick = function () { enableInput() };
+        function enableInput() {
+            var flag = 1;
+            
+            var shiharaiDTVal = $("#shiharaiDT").val();
+            var uketukeDTVal = $("#uketukeDT").val();
+            var bikoVal = $("#biko").val();
+            var kaikeiNDVal = $("#yearGen").val();
+            var suitoVal = $("#suitoKB").val();
+            var bumonVal = $("#editBumonCD").val();
+
+            if(shiharaiDTVal == 0){
+                flag = 0;
+                $("#alertShiharai").text("支払予定日 field is empty!");
+            }
+            else{
+                $("#alertShiharai").text("");
+            }
+
+            if (uketukeDTVal == 0) {
+                flag = 0;
+                $("#alertUketuke").text("申請日 field is empty!");
+            }
+            else{
+                $("#alertUketuke").text("");
+            }
+
+            if (bikoVal == 0) {
+                flag = 0;
+                $("#alertBiko").text("出張目的（備考) field is empty!");
+            }
+            else{
+                $("#alertBiko").text("");
+            }
+
+            if (kaikeiNDVal == 0) {
+                flag = 0;
+                $("#alertKaikei").text("年度 field is empty!");
+            }
+            else{
+                $("#alertKaikei").text("");
+            }
+
+            if (suitoVal == 0) {
+                flag = 0;
+                $("#alertSuito").css("color", "red");
+            }
+            else{
+                $("#alertSuito").css("color", "white");
+            }
+
+            if (bumonVal == 0) {
+                flag = 0;
+                $("#alertBumon").text("起票部門 field is empty!");
+            }
+            else if(checkBumon == 0){
+                flag = 0;
+                $("#alertBumon").text("ID not existence");
+            }
+            else{
+                $("#alertBumon").text("");
+            }
+
+            if (checkBumon == 0 || flag == 0) {
+                $("#editInfo").on("submit", function(e){
+                   e.preventDefault();
+                });
+            }
+            else {
+                $("#editInfo").unbind("submit").submit();
+                if (id == @ViewContext.RouteData.Values["denpyoNO"]) {
+                    document.getElementById("denpyoDT").disabled = false;
+                    alert("Cập nhật dữ liệu thành công\n伝票番号: " + @ViewContext.RouteData.Values["denpyoNO"]);
+                }
+                else {
+                    document.getElementById("denpyoNO").disabled = false;
+                    document.getElementById("denpyoDT").disabled = false;
+                    alert("Cập nhật dữ liệu thành công\n伝票番号: " + @ViewContext.RouteData.Values["denpyoNO"]);
+                }
+                getSessionValue();
+            }
+        }
+
+
+        document.getElementById("btnDelete").onclick = function (e) { deleteRecord() };
+        function deleteRecord() {
+            var id = @ViewContext.RouteData.Values["denpyoNO"];
+            if (confirm("Bạn có muốn xóa dữ liệu \n伝票番号 : " + id)) {
+
+                document.getElementById("denpyoNO").disabled = false;
+                document.getElementById("denpyoDT").disabled = false;
+
+                $.ajax({
+                    type: "get",
+                    url: '@Url.Page("/edit")?handler=Delete',
+                    data: { denpyoNO: id },
+                    dataType: "json",
+                    success: function () {
+                        alert("Xóa dữ liệu thành công!");
+                        location.href = "/home";
+
+                    },
+                    error: function () {
+                        alert("Xóa dữ liệu không thành công!");
+                    }
+                });
+
+            }
+        }
+
+        function searchBumon() {
+            $.ajax({
+                type: "get",
+                url: "@Url.Page("/edit")?handler=SearchBumon",
+                data: {
+                    bumonCD: $("#bumonCD").val(),
+                    bumonNM: $("#bumonNM").val()
+                },
+                dataType: "json",
+                success: function (data) {
+                    console.log(data);
+                    if (data.code == 200) {
+                        $("#records").empty();
+                        $.each(data.listBUMON, function (k, v) {
+                            let tr = '<tr style="cursor:pointer">';
+                            tr += '<td>' + '<input type = "radio" name = "choice">' + '</td>';
+                            tr += '<td>' + '<p name="itemBumonCD" >' + v.bumonCD + '</p>' + '</td>';
+                            tr += '<td>' + '<p name="itemBumonNM" >' + v.bumonNM + '</p>' + '</td>';
+                            tr += '</tr>';
+                            $('#records').append(tr);
+                        });
+                        $("input[name=choice]").prop('checked', false);
+                    }
+
+
+                }
+            });
+        }
+
+
+
+        $("#btnTransport").on('click', function () {
+            var sessionLength = JSON.parse(sessionStorage.getItem("tempData"));
+            console.log(sessionLength);
+            if (sessionLength != null) {
+                var tempId = @ViewData["maxGyoNoId"] + sessionLength.length;
+            }
+            else {
+                var tempId = @ViewData["maxGyoNoId"];
+            }
+            var tempYdenpyo = [];
+
+            var v_denpyoNO = @ViewContext.RouteData.Values["denpyoNO"];
+            var v_denpyoDT = $("#denpyoDT").val();
+            var v_suitoKB = $("#suitoKB").val();
+            var v_shiharaiDT = $("#shiharaiDT").val();
+            var v_kaikeiND = $("#yearGen").val();
+            var v_uketukeDT = $("#uketukeDT").val();
+            var v_bumonCD = $("#editBumonCD").val();
+            var v_biko = $("#biko").val();
+
+            var tempObj = {};
+
+            tempObj.denpyoNO = v_denpyoNO;
+            tempObj.denpyoDT = v_denpyoDT;
+            tempObj.suitoKB = v_suitoKB;
+            tempObj.shiharaiDT = v_shiharaiDT;
+            tempObj.kaikeiND = v_kaikeiND;
+            tempObj.uketukeDT = v_uketukeDT;
+            tempObj.bumonCD = v_bumonCD;
+            tempObj.biko = v_biko;
+
+            tempYdenpyo.push(tempObj);
+            sessionStorage.tempYdenpyo = JSON.stringify(tempYdenpyo);
+
+            window.location.pathname = 'plan/@ViewContext.RouteData.Values["denpyoNO"]/' + tempId;
+        });
+
+        $('#popup').on('show.bs.modal', function (event) {
+            var editBCD = $("#editBumonCD").val();
+            var editBNM = $("#editBumonNM").val();
+            $("#records tr").each(function (result) {
+
+                var bumonCD = $(this).find("td:nth-child(2)").text().trim();
+                var bumonNM = $(this).find("td:nth-child(3)").text().trim();
+                if (bumonCD.indexOf(editBCD) === 0 && editBCD === bumonCD) {
+                    $(this).find("input[name=choice]").prop('checked', true);
+                    return false;
+                }
+            });
+        });
+
+        $('#records').on("click", "input[type=radio]", function () {
+            if ($('input[name=choice]:checked').length > 0) {
+                var bumonCD = $(this).closest("tr").find('td:eq(1)').text();
+                var bumonNM = $(this).closest("tr").find('td:eq(2)').text();
+                $("#emptyRadio").text("");
+                $('#btnChoose').on("click", function () {
+                    if (bumonCD != null && bumonNM != null) {
+                        document.getElementById("editBumonCD").value = bumonCD.trim();
+                        document.getElementById("editBumonNM").value = bumonNM.trim();
+                    }
+                    $("#popup").modal('hide');
+                });
+            }
+            else {
+                $('#btnChoose').on("click", function (e) {
+                    e.preventDefault();
+                    $("#emptyRadio").text("Please choose an option");
+                });
+
+            }
+        });
+
+        $("#btnChoose").on("click", function (e) {
+            if ($('input[name=choice]:checked').length == 0) {
+                e.preventDefault();
+                $("#emptyRadio").text("Please choose an option");
+            }
+        });
+
+        var checkBumon = 1;
+        $("#editBumonCD").on("keyup", function () {
+            var txt = $(this).val();
+            $("#records tr").each(function (result) {
+                if (result >= 0) {
+                    var bumonCD = $(this).find("td:nth-child(2)").text().trim();
+                    var bumonNM = $(this).find("td:nth-child(3)").text().trim();
+                    if ((bumonCD.indexOf(txt) === 0 && txt === bumonCD) || txt === "") {
+                        document.getElementById("editBumonNM").disabled = false;
+                        if(txt == ""){
+                            $("#editBumonNM").val(txt);
+                        }
+                        else{
+                            $("#editBumonNM").val(bumonNM);
+                        }
+                        document.getElementById("editBumonNM").disabled = true;
+                        $("#alertBumon").text("");
+                        checkBumon = 1;
+                        return false;
+                    }
+                    else if ((bumonCD.indexOf(txt) !== 0 && txt !== bumonCD)) {
+                        document.getElementById("editBumonNM").disabled = false;
+                        $("#editBumonNM").val("");
+                        document.getElementById("editBumonNM").disabled = true;
+                        $("#alertBumon").text("ID not existence");
+                        checkBumon = 0;
+                        return true;
+                    }
+                }
+            });
+        });
+
+        //store data from db to session
+        var count = @ydenpyodCount;
+        var arrData = [];
+        var tempData = JSON.parse(sessionStorage.getItem("tempData"));
+        var rootUpdate = JSON.parse(sessionStorage.getItem("rootUpdate"));
+
+        //update rootTbl
+        if (sessionStorage.rootUpdate != null) {
+            count = 1;
+            $("#root").empty();
+            $.each(rootUpdate, function (k, v) {
+                if (v.isDelete === "true") {
+                    let path = 'plan/' + @ViewContext.RouteData.Values["denpyoNO"] + '/' + v.gyoNO;
+                    let tr = '<tr style="cursor:pointer; background-color:lightsteelblue" ondblclick="window.location.pathname = &#39' + path + '&#39">';
+                    tr += '<td>' + count + '</td>';
+                    tr += '<td>' + v.idoDT + '</td>';
+                    tr += '<td>' + v.shuppatsuPLC + '</td>';
+                    tr += '<td>' + v.mokutekiPLC + '</td>';
+                    tr += '<td>' + v.keiro + '</td>';
+                    tr += '<td class= &#39count-me&#39>' + v.kingaku + '</td>';
+                    tr += '<td hidden>' + v.gyoNO + '</td>';
+                    tr += '</tr>';
+                    $('#root').append(tr);
+                    count++;
+                }
+                else {
+                    let path = 'plan/' + @ViewContext.RouteData.Values["denpyoNO"] + '/' + v.gyoNO;
+                    let tr = '<tr style="cursor:pointer" ondblclick="window.location.pathname = &#39' + path + '&#39">';
+                    tr += '<td>' + count + '</td>';
+                    tr += '<td>' + v.idoDT + '</td>';
+                    tr += '<td>' + v.shuppatsuPLC + '</td>';
+                    tr += '<td>' + v.mokutekiPLC + '</td>';
+                    tr += '<td>' + v.keiro + '</td>';
+                    tr += '<td class= &#39count-me&#39>' + v.kingaku + '</td>';
+                    tr += '<td hidden>' + v.gyoNO + '</td>';
+                    tr += '</tr>';
+                    $('#root').append(tr);
+                    count++;
+                }
+            });
+        }
+
+
+
+
+        function getSessionValue() {
+
+            if (tempData != null && rootUpdate == null) {
+                var updateData = tempData;
+            }
+            else if (rootUpdate != null && tempData == null) {
+                var updateData = rootUpdate;
+            }
+            else if (tempData != null && rootUpdate != null) {
+                var updateData = tempData.concat(rootUpdate);
+            }
+            sessionStorage.clear();
+
+            if (updateData != null || updateData != "undefined") {
+                $.ajax({
+                    type: "post",
+                    url: "@Url.Page("/edit")?handler=SaveYdenpyoD",
+                    data: {
+                        updateData: updateData
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("XSRF-TOKEN",
+                            $('input:hidden[name="__RequestVerificationToken"]').val());
+                    },
+                    dataType: "json",
+                    sucess: function (data, status, xhr) {
+
+                    }
+                });
+            }
+        }
+
+
+        //add tempdata to table
+        $("#temp").empty();
+        $.each(tempData, function (k, v) {
+            if (v.isDelete === "true") {
+                let path = 'plan/' + @ViewContext.RouteData.Values["denpyoNO"] + '/' + v.gyoNO;
+                let tr = '<tr style="cursor:pointer; background-color:lightsteelblue" ondblclick="window.location.pathname = &#39' + path + '&#39">';
+                tr += '<td>' + count + '</td>';
+                tr += '<td>' + v.idoDT + '</td>';
+                tr += '<td>' + v.shuppatsuPLC + '</td>';
+                tr += '<td>' + v.mokutekiPLC + '</td>';
+                tr += '<td>' + v.keiro + '</td>';
+                tr += '<td class= &#39count-me&#39>' + v.kingaku + '</td>';
+                tr += '<td hidden>' + v.gyoNO + '</td>';
+                tr += '</tr>';
+                $('#temp').append(tr);
+                count++;
+            }
+            else {
+                let path = 'plan/' + @ViewContext.RouteData.Values["denpyoNO"] + '/' + v.gyoNO;
+                let tr = '<tr style="cursor:pointer" ondblclick="window.location.pathname = &#39' + path + '&#39">';
+                tr += '<td>' + count + '</td>';
+                tr += '<td>' + v.idoDT + '</td>';
+                tr += '<td>' + v.shuppatsuPLC + '</td>';
+                tr += '<td>' + v.mokutekiPLC + '</td>';
+                tr += '<td>' + v.keiro + '</td>';
+                tr += '<td class= &#39count-me&#39>' + v.kingaku + '</td>';
+                tr += '<td hidden>' + v.gyoNO + '</td>';
+                tr += '</tr>';
+                $('#temp').append(tr);
+                count++;
+            }
+        });
+
+
+        $("#root tr").each(function () {
+            var currentRow = $(this);
+
+            var v_denpyoNO = @ViewContext.RouteData.Values["denpyoNO"];
+            var v_idoDT = currentRow.find("td:eq(1)").text().trim();
+            var v_shuppatsu = currentRow.find("td:eq(2)").text().trim();
+            var v_mokuteki = currentRow.find("td:eq(3)").text().trim();
+            var v_keiro = currentRow.find("td:eq(4)").text().trim();
+            var v_kingaku = currentRow.find("td:eq(5)").text().trim();
+            var v_gyoNO = currentRow.find("td:eq(6)").text().trim();
+
+            var tempObj = {};
+
+            tempObj.denpyoNO = v_denpyoNO;
+            tempObj.idoDT = v_idoDT;
+            tempObj.shuppatsuPLC = v_shuppatsu;
+            tempObj.mokutekiPLC = v_mokuteki;
+            tempObj.keiro = v_keiro;
+            tempObj.kingaku = v_kingaku;
+            tempObj.gyoNO = v_gyoNO;
+            tempObj.isDelete = "false";
+
+            arrData.push(tempObj);
+            sessionStorage.rootData = JSON.stringify(arrData);
+        });
+        console.log(arrData);
+
+        var tempData = JSON.parse(sessionStorage.getItem("tempData"));
+        var tempRootUpdate = JSON.parse(sessionStorage.getItem("rootUpdate"));
+        var rootData = JSON.parse(sessionStorage.getItem("rootData"));
+
+        var sum = 0;
+        var i;
+        if (sessionStorage.length > 0) {
+            if (tempRootUpdate != null) {
+                for (i = 0; i < tempRootUpdate.length; i++) {
+                    if (tempRootUpdate[i].isDelete === "false") {
+                        var kingaku = tempRootUpdate[i].kingaku;
+                        sum += parseInt(kingaku);
+                        console.log(sum);
+                    }
+                }
+            }
+            else {
+                if (rootData != null) {
+                    for (i = 0; i < rootData.length; i++) {
+                        var kingaku = rootData[i].kingaku;
+                        sum += parseInt(kingaku);
+                        console.log(sum);
+                    }
+                }
+            }
+
+            if (tempData != null) {
+                for (i = 0; i < tempData.length; i++) {
+                    if (tempData[i].isDelete === "false") {
+                        var kingaku = tempData[i].kingaku;
+                        sum += parseInt(kingaku);
+                        console.log(sum);
+                    }
+                }
+            }
+        }
+
+        $("#sumCash").text(sum);
+        document.getElementById("kingaku").value = sum;
+    </script>
+</body>
+@section scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

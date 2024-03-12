@@ -1,0 +1,82 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.center {
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+}
+
+td {
+    text-align: center;
+}
+
+th {
+    background-color: gray;
+    text-align: center;
+}
+
+button {
+    background-color: #A4A0A0;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    color: rgba(0, 0, 0, 0);
+    opacity: 1;
+    display: block;
+    background: url(https://i.postimg.cc/SsKd622r/katakana-letter-ga-u30-AC-icon-25.png) no-repeat;
+    width: 20px;
+    height: 20px;
+    border-width: thin;
+}
+
+input[type="text"]{
+    width: 146px
+}
+
+input[type="date"] {
+    width: 146px
+}
+
+table, th, td {
+    border: 1px solid;
+}
+
+label {
+    width: 90px;
+    margin-left: 10%
+}
+
+span {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+div.spacing{
+    margin-top:15px;
+    margin-bottom:15px;
+}
+
+.hoverable tr:hover{
+    background-color: floralwhite;
+}
+
+.modal-title{
+    text-align: center;
+}

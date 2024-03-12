@@ -1,0 +1,288 @@
+﻿@page "/plan/{denpyoNO:int?}/{gyoNO:int?}"
+@model ProjectIntern_.NET.Pages.planItemModel
+
+@{
+    ViewData["Title"] = "planItem";
+}
+
+<head>
+    <meta charset="utf-8" />
+    <title>予定伝票入力</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ProjectIntern_.NET.styles.css" asp-append-version="true" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+</head>
+<body>
+    <h1 align="center">予定伝票明細</h1>
+
+    <div class="container" style="margin-top: 60px; align-items: center">
+
+        <div class="spacing">
+            <label>年月日</label>
+            <input asp-for="ES_YDENPYOD.idoDT" type="text" onfocus="onfocusTypeLimitless(this)" onblur="if(!this.value) this.type='text'" id="idoDT" />
+            <label id="alertIdo" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+        </div>
+
+        <div class="spacing">
+            <label>出発地</label>
+            <input asp-for="ES_YDENPYOD.shuppatsuPLC" type="text" id="shuppatsuPLC" />
+            <label id="alertShuppatsu" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+        </div>
+
+        <div class="spacing">
+            <label>目的地</label>
+            <input asp-for="ES_YDENPYOD.mokutekiPLC" type="text" id="mokutekiPLC" />
+            <label id="alertMokuteki" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+        </div>
+
+        <div class="spacing">
+            <label>経路</label>
+            <input asp-for="ES_YDENPYOD.keiro" type="text" id="keiro" />
+            <label id="alertKeiro" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+        </div>
+
+        <div class="spacing">
+            <label>金額</label>
+            <input asp-for="ES_YDENPYOD.kingaku" type="text" id="kingaku" />
+            <label id="alertKingaku" style="height: 24px; color: red; width: auto; margin-left: 0px"></label>
+        </div>
+
+        <div class="spacing">
+            <label>削除</label>
+            @if (Model.listES_YDENPYOD.Any(u => u.gyoNO.ToString() == ViewContext.RouteData.Values["gyoNO"].ToString()))
+            {
+                <input type="checkbox" id="isDelete" />
+            }
+            else
+
+            {
+                <input type="checkbox" id="isDelete" disabled />
+            }
+        </div>
+
+        <div class="spacing">
+            <button id="btnRegister" type="button" style="margin-left: 500px">登録</button>
+            <button id="btnBack" type="button" onclick="window.location.pathname = 'edit/@(ViewContext.RouteData.Values["denpyoNO"])'" style="margin-left: -4px">終了</button>
+        </div>
+    </div>
+
+    <script src="~/js/datefilter.js"></script>
+    <script src="~/js/yearvalidation.js"></script>
+    <script src="~/js/editScript.js"></script>
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script type="text/javascript">
+        var tempDataArr = [];
+        var i;
+        var flag = 0;
+        var oldData = JSON.parse(sessionStorage.getItem("tempData"));
+        var tempRootUpdate = JSON.parse(sessionStorage.getItem("rootUpdate"));
+        console.log(oldData);
+        console.log(tempRootUpdate);
+        if (tempRootUpdate != null) {
+            var tempRootData = tempRootUpdate;
+        }
+        else {
+            var tempRootData = JSON.parse(sessionStorage.getItem("rootData"));
+        }
+
+        //replace data with temp data
+        if (tempRootUpdate != null) {
+            for (i = 0; i < tempRootUpdate.length; i++) {
+                if (tempRootUpdate[i].denpyoNO == @ViewContext.RouteData.Values["denpyoNO"] && tempRootUpdate[i].gyoNO == @ViewContext.RouteData.Values["gyoNO"]) {
+                    $("#idoDT").val(tempRootUpdate[i].idoDT);
+                    $("#shuppatsuPLC").val(tempRootUpdate[i].shuppatsuPLC);
+                    $("#mokutekiPLC").val(tempRootUpdate[i].mokutekiPLC);
+                    $("#keiro").val(tempRootUpdate[i].keiro);
+                    $("#kingaku").val(tempRootUpdate[i].kingaku);
+                    if (tempRootUpdate[i].isDelete === "true") {
+                        $("#isDelete").prop('checked', true);
+                    }
+                    else if (tempRootUpdate[i].isDelete === "false") {
+                        $("#isDelete").prop('checked', false);
+                        //$("#isDelete").checked = false;
+                    }
+                    break;
+                }
+            }
+        }
+        if (oldData != null) {
+            for (i = 0; i < oldData.length; i++) {
+                if (oldData[i].denpyoNO == @ViewContext.RouteData.Values["denpyoNO"] && oldData[i].gyoNO == @ViewContext.RouteData.Values["gyoNO"]) {
+                    $("#isDelete").prop('disabled', false);
+                    $("#idoDT").val(oldData[i].idoDT);
+                    $("#shuppatsuPLC").val(oldData[i].shuppatsuPLC);
+                    $("#mokutekiPLC").val(oldData[i].mokutekiPLC);
+                    $("#keiro").val(oldData[i].keiro);
+                    $("#kingaku").val(oldData[i].kingaku);
+                    if (oldData[i].isDelete === "true") {
+                        $("#isDelete").prop('checked', true);
+                    }
+                    else if (oldData[i].isDelete === "false") {
+                        $("#isDelete").prop('checked', false);
+                    }
+                    break;
+                }
+            }
+        }
+
+
+
+
+        $("#btnRegister").on('click', function () {
+            var checkFlag = 1;
+
+            var v_denpyoNO = @ViewContext.RouteData.Values["denpyoNO"];
+            var v_gyoNO = @ViewContext.RouteData.Values["gyoNO"];
+            var v_idoDT = document.getElementById("idoDT").value;
+            var v_shuppatsu = document.getElementById("shuppatsuPLC").value;
+            var v_mokuteki = document.getElementById("mokutekiPLC").value;
+            var v_keiro = document.getElementById("keiro").value;
+            var v_kingaku = document.getElementById("kingaku").value;
+
+            if (v_idoDT == 0) {
+                checkFlag = 0;
+                $("#alertIdo").text("年月日 field is empty!");
+            }
+            else {
+                $("#alertIdo").text("");
+            }
+
+            if (v_shuppatsu == 0) {
+                checkFlag = 0;
+                $("#alertShuppatsu").text("経路 field is empty!");
+            }
+            else {
+                $("#alertShuppatsu").text("");
+            }
+
+            if (v_mokuteki == 0) {
+                checkFlag = 0;
+                $("#alertMokuteki").text("出発地 field is empty!");
+            }
+            else {
+                $("#alertMokuteki").text("");
+            }
+
+            if (v_keiro == 0) {
+                checkFlag = 0;
+                $("#alertKeiro").text("経路 field is empty!");
+            }
+            else {
+                $("#alertKeiro").text("");
+            }
+
+            if (v_kingaku == 0 || !v_kingaku.match(/^[0-9]{0,2}$/)) {
+                checkFlag = 0;
+                $("#alertKingaku").text("金額 field is empty!");
+            }
+            else {
+                $("#alertKingaku").text("");
+            }
+
+            if (checkFlag == 0) {
+                $("#btnRegister").on("click", function (e) {
+                   e.preventDefault();
+                });
+            }
+            else {
+                $("#btnRegister").unbind("click").click();
+                var tempObj = {};
+
+                tempObj.denpyoNO = v_denpyoNO;
+                tempObj.idoDT = v_idoDT;
+                tempObj.shuppatsuPLC = v_shuppatsu;
+                tempObj.mokutekiPLC = v_mokuteki;
+                tempObj.keiro = v_keiro;
+                tempObj.kingaku = v_kingaku;
+                tempObj.gyoNO = v_gyoNO;
+                if ($('input[type=checkbox]:checked').length > 0) {
+                    tempObj.isDelete = "true";
+                }
+                else {
+                    tempObj.isDelete = "false";
+                }
+
+                flag = 0;
+                //loop through session to check duplicate
+                //compare with root to avoid duplicate
+                if (tempRootData != null) {
+                    for (i = 0; i < tempRootData.length; i++) {
+                        if (tempRootData[i].denpyoNO == tempObj.denpyoNO && tempRootData[i].gyoNO == tempObj.gyoNO) {
+                            tempDataArr.push(tempObj);
+                            flag = 1;
+                        }
+                        else {
+                            tempDataArr.push(tempRootData[i]);
+                        }
+                    }
+
+                    if (flag == 1) {
+                        sessionStorage.rootUpdate = JSON.stringify(tempDataArr);
+                        window.location.pathname = 'edit/@(ViewContext.RouteData.Values["denpyoNO"])';
+                    }
+                    else {
+                        tempDataArr = [];
+                        flag = 0;
+                        if (oldData != null) {
+                            for (i = 0; i < oldData.length; i++) {
+                                if (oldData[i].denpyoNO == tempObj.denpyoNO && oldData[i].gyoNO == tempObj.gyoNO) {
+                                    tempDataArr.push(tempObj);
+                                    flag = 1;
+                                }
+                                else {
+                                    tempDataArr.push(oldData[i]);
+                                }
+                            }
+                        }
+
+                        if (flag == 0) {
+                            tempDataArr.push(tempObj);
+                        }
+                        sessionStorage.tempData = JSON.stringify(tempDataArr);
+                        console.log(tempDataArr);
+                        window.location.pathname = 'edit/@(ViewContext.RouteData.Values["denpyoNO"])';
+                    }
+                }
+                else {
+                    if (oldData != null) {
+                        for (i = 0; i < oldData.length; i++) {
+                            if (oldData[i].denpyoNO == tempObj.denpyoNO && oldData[i].gyoNO == tempObj.gyoNO) {
+                                tempDataArr.push(tempObj);
+                                flag = 1;
+                            }
+                            else {
+                                tempDataArr.push(oldData[i]);
+                            }
+                        }
+                        if (flag == 0) {
+                            tempDataArr.push(tempObj);
+                        }
+                        sessionStorage.tempData = JSON.stringify(tempDataArr);
+                        console.log(tempDataArr);
+                    }
+                    else {
+                        tempDataArr.push(tempObj);
+                        sessionStorage.tempData = JSON.stringify(tempDataArr);
+                        console.log(tempDataArr);
+                    }
+
+                    window.location.pathname = 'edit/@(ViewContext.RouteData.Values["denpyoNO"])';
+                }
+            }
+
+        });
+
+    </script>
+</body>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
